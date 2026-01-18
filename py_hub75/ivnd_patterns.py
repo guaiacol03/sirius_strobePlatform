@@ -62,7 +62,6 @@ def __single_number(num):
         frame[10:26, 7:11] = True
 
     return frame
-
 def ivnd_number(num1, num2):
     frame = np.full((64, 64), False, dtype=np.bool)
 
@@ -96,7 +95,6 @@ def __micro_number(num):
     frame[0:3, 0] |= num not in ["1", "4"]
 
     return frame
-
 def ivnd_embed_number(value, frame_a, frame_n):
     frame_a[1:13, 1:7] = True
     frame_n[4, 1:6] = True
@@ -112,3 +110,67 @@ def ivnd_embed_number(value, frame_a, frame_n):
     num3 = __micro_number(val_string[2])
     frame_n[9:12, 1:6] = np.invert(num3)
 
+__sign_mtp = np.array([
+    [1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1],
+    [1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+], dtype=np.bool).transpose()
+__sign_c = np.array([
+    [1, 1, 1],
+    [1, 0, 0],
+    [1, 0, 0],
+    [1, 0, 0],
+    [1, 1, 1]
+], dtype=np.bool).transpose()
+__sign_arrow = np.array([
+    [0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0],
+    [1, 1, 1, 1, 1],
+    [0, 0, 0, 1, 0],
+    [0, 0, 1, 0, 0]
+], dtype=np.bool).transpose()
+def ivnd_ask_mtp(sel, values):
+    base = np.zeros((64, 64), dtype=np.bool)
+    select = np.zeros((64, 64), dtype=np.bool)
+    static = np.zeros((64, 64), dtype=np.bool)
+
+    static[1:12, 1:6] = __sign_mtp
+    static[25:28, 1:6] = __sign_c
+
+    nums = [__micro_number(v) for v in values]
+    if sel != 1:
+        base[13:16, 1:6] = nums[0]
+    else:
+        select[13:16, 1:6] = nums[0]
+    if sel != 2:
+        base[17:20, 1:6] = nums[1]
+    else:
+        select[17:20, 1:6] = nums[1]
+    if sel != 3:
+        base[21:24, 1:6] = nums[2]
+    else:
+        select[21:24, 1:6] = nums[2]
+    if sel != 4:
+        base[29:32, 1:6] = nums[3]
+    else:
+        select[29:32, 1:6] = nums[3]
+    if sel != 5:
+        base[33:36, 1:6] = nums[4]
+    else:
+        select[33:36, 1:6] = nums[4]
+
+    i = 0
+    if len(nums) > 5:
+        # dash
+        static[37:40, 5] = True
+
+        for i in range(len(nums) - 5):
+            static[41+(4*i):44+(4*i), 1:6] = nums[i+5]
+        i += 2
+    if sel != 0:
+        base[37 + (4 * i):42 + (4 * i), 1:6] = __sign_arrow
+    else:
+        select[37 + (4 * i):42 + (4 * i), 1:6] = __sign_arrow
+    return base, select, static
