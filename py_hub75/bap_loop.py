@@ -1,14 +1,14 @@
 import os
 import random
-from ivnd_display import IVNDDisplay
-from ivnd_patterns import *
-from ivnd_rotary import IVNDRotary
+from bap_display import BAPDisplay
+from bap_patterns import *
+from bap_rotary import BAPRotary
 import time
 
-class IVNDProgram:
+class BAPProgram:
     def __init__(self):
-        self.display = IVNDDisplay()
-        self.rotary = IVNDRotary()
+        self.display = BAPDisplay()
+        self.rotary = BAPRotary()
         self.filename = "default"
         self.logfile = None
 
@@ -118,7 +118,7 @@ class IVNDProgram:
                     val = 100 + val
 
                 ent_num = f"{val:02}"
-                buf = ivnd_number(ent_num[0], ent_num[1])
+                buf = bap_number(ent_num[0], ent_num[1])
                 self.display.write(image_b=buf)
             elif val != last_val:
                 if val > 999:
@@ -129,11 +129,11 @@ class IVNDProgram:
                 last_val = val
                 self.display.render_strobe(val)
                 task = f"{random.randint(1, 99):02}"
-                buf = ivnd_number(task[0], task[1])
+                buf = bap_number(task[0], task[1])
 
                 neg = np.zeros((64, 64), dtype=np.bool)
                 alw = np.zeros((64, 64), dtype=np.bool)
-                ivnd_embed_number(val, alw, neg)
+                bap_embed_number(val, alw, neg)
 
                 self.display.write(image_r = alw, image_g = neg, image_b = buf)
             time.sleep(0.5)

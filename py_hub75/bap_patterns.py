@@ -1,6 +1,6 @@
 import numpy as np
 
-def ivnd_testcard():
+def bap_testcard():
     frame_r = np.full((64, 64), False, dtype=np.bool)
     frame_r[1, 1:63] = True
     frame_r[62, 1:63] = True
@@ -62,7 +62,7 @@ def __single_number(num):
         frame[10:26, 7:11] = True
 
     return frame
-def ivnd_number(num1, num2):
+def bap_number(num1, num2):
     frame = np.full((64, 64), False, dtype=np.bool)
 
     num1_fr = __single_number(num1)
@@ -95,7 +95,7 @@ def __micro_number(num):
     frame[0:3, 0] |= num not in ["1", "4"]
 
     return frame
-def ivnd_embed_number(value, frame_a, frame_n):
+def bap_embed_number(value, frame_a, frame_n):
     frame_a[1:13, 1:7] = True
     frame_n[4, 1:6] = True
     frame_n[8, 1:6] = True

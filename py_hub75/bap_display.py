@@ -1,9 +1,9 @@
 import RPi.GPIO as GPIO
-from ivnd_freq import find_dividers, form_bytes
+from bap_freq import find_dividers, form_bytes
 import spidev
 import numpy as np
 
-class IVNDDisplay:
+class BAPDisplay:
     def __init__(self):
         self.spi = spidev.SpiDev()
         self.spi.open(0, 0)

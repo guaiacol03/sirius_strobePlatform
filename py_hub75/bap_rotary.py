@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 
-class IVNDRotary:
+class BAPRotary:
     def __init__(self):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)

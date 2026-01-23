@@ -1,5 +1,5 @@
-from ivnd_loop import IVNDProgram
+from bap_loop import BAPProgram
 
-prog = IVNDProgram()
+prog = BAPProgram()
 while True:
     prog.run()
