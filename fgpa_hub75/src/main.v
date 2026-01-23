@@ -1,10 +1,14 @@
 module main (
     input wire clk_50M,
 
-    input wire SPI_miso,
+    output wire SPI_miso,
     input wire SPI_sclk,
-    input wire SPI_ce,
+    input wire SPI_mosi,
     input wire SPI_alt,
+
+    input wire R_btn,
+    input wire R_cw,
+    input wire R_ccw,
 
     output wire A,
     output wire B,
@@ -46,13 +50,50 @@ DCE uut_20M (
     .CLKOUT(clk_20M)
 );
 
+wire ticked_btn;
+rotary_filter16 inst_filtBtn (
+    .I(R_btn),
+    .clk(clk_20M),
+    .ticked_o(ticked_btn)
+);
+wire ticked_cw;
+rotary_filter16 inst_filtCw (
+    .I(R_cw),
+    .clk(clk_20M),
+    .ticked_o(ticked_cw)
+);
+wire ticked_ccw;
+rotary_filter16 inst_filtCcw (
+    .I(R_ccw),
+    .clk(clk_20M),
+    .ticked_o(ticked_ccw)
+);
+
+wire[1:0] conv_data;
+wire conv_next;
+rotary_conveyor r_inst (
+    .clk(clk_20M),
+    .set({ticked_btn, ticked_ccw, ticked_cw}),
+    .data(conv_data),
+    .data_next(conv_next)
+);
+
+SPI_RComm inst_spiRot (
+    .clk(clk_20M),
+    .SPI_clk(SPI_sclk),
+    .SPI_miso(SPI_miso),
+    
+    .data_vals(conv_data),
+    .data_next(conv_next)
+);
+
 wire[7:0] SPI_addr;
 wire[63:0] SPI_data;
 wire SPI_en;
 SPI_bramComm #(
     .MAX_POS(8'd191)
 ) inst_spiImg(
-    .SPI_miso(SPI_miso),
+    .SPI_mosi(SPI_mosi),
     .SPI_clk(SPI_sclk),
     .SPI_rst(SPI_alt),
     .BRAM_clk(clk_20M),
@@ -67,7 +108,7 @@ wire SPI_ctEn;
 SPI_bramComm #(
     .MAX_POS(8'd0)
 ) inst_spiCtrl (
-    .SPI_miso(SPI_miso),
+    .SPI_mosi(SPI_mosi),
     .SPI_clk(SPI_sclk),
     .SPI_rst(~SPI_alt),
     .BRAM_clk(clk_20M),

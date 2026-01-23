@@ -8,8 +8,11 @@
         <File path="src/B_BramReader.v" type="file.verilog" enable="1"/>
         <File path="src/B_Mapper.v" type="file.verilog" enable="1"/>
         <File path="src/B_RowWriter.v" type="file.verilog" enable="1"/>
+        <File path="src/R_conveyor.v" type="file.verilog" enable="1"/>
+        <File path="src/R_filter.v" type="file.verilog" enable="1"/>
         <File path="src/SPI_BramComm.v" type="file.verilog" enable="1"/>
         <File path="src/SPI_Masker.v" type="file.verilog" enable="1"/>
+        <File path="src/SPI_RComm.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_pll/gowin_pll.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_pll/gowin_pll_mod.v" type="file.verilog" enable="1"/>
         <File path="src/gowin_pll_1/gowin_pll_1.v" type="file.verilog" enable="1"/>

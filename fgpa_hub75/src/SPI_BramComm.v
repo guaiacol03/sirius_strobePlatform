@@ -1,7 +1,7 @@
 module SPI_bramComm #(
     parameter MAX_POS = 8'd0
 ) (
-    input wire SPI_miso,
+    input wire SPI_mosi,
     input wire SPI_clk,
     input wire SPI_rst,
     
@@ -20,7 +20,7 @@ always @(posedge SPI_clk) begin
         read_counter <= 6'b111111;
         pos_counter <= MAX_POS;
     end else begin
-        read_buffer <= (read_buffer << 1) + SPI_miso;
+        read_buffer <= (read_buffer << 1) + SPI_mosi;
         read_counter <= read_counter + 6'b1;
 
         if (&read_counter) begin
