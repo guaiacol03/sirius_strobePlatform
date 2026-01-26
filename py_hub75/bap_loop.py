@@ -89,6 +89,7 @@ class BAPProgram:
         phase = 0
         log_index = 0
         log_line = ""
+        log_insp = 0.0
         while True:
             tx = self.device.read_rotary()
             for a in tx:
@@ -107,7 +108,7 @@ class BAPProgram:
                     val = 1
                     self.device.render_static()
                 else:
-                    log_line += f"{val:02}"
+                    log_line += f"{val:02},{log_insp:.2f}"
                     self.log_write(log_line)
                     log_index += 1
 
@@ -129,29 +130,32 @@ class BAPProgram:
                 ent_num = f"{val:02}"
                 buf = bap_number(ent_num[0], ent_num[1])
                 self.device.write(image_b=buf)
-            elif val != last_val:
-                if val > 999:
-                    val = 999
-                elif val < 1:
-                    val = 1
+            else:
+                log_insp += 0.1
+                if val != last_val:
+                    log_insp = 0.0
+                    if val > 999:
+                        val = 999
+                    elif val < 1:
+                        val = 1
 
-                last_val = val
-                self.device.render_strobe(val)
-                task = f"{random.randint(1, 99):02}"
-                buf = bap_number(task[0], task[1])
+                    last_val = val
+                    self.device.render_strobe(val)
+                    task = f"{random.randint(1, 99):02}"
+                    buf = bap_number(task[0], task[1])
 
-                neg = np.zeros((64, 64), dtype=np.bool)
-                alw = np.zeros((64, 64), dtype=np.bool)
-                bap_embed_number(val, alw, neg)
+                    neg = np.zeros((64, 64), dtype=np.bool)
+                    alw = np.zeros((64, 64), dtype=np.bool)
+                    bap_embed_number(val, alw, neg)
 
-                self.device.write(image_r = alw, image_g = neg, image_b = buf)
-            time.sleep(0.1)
+                    self.device.write(image_r = alw, image_g = neg, image_b = buf)
+                time.sleep(0.1)
 
     def run(self):
         self.filename, self.brightness = self.ask_id()
         print(f"Started {self.filename}, brt {self.brightness}")
         self.logfile = open("logs/" + self.filename, "w")
-        self.logfile.writelines(["filename,trial,task,answer\n"])
+        self.logfile.writelines(["filename,trial,task,answer,inspect_time\n"])
         self.main_loop()
         print(f"Ended {self.filename}")
         self.logfile.close()
