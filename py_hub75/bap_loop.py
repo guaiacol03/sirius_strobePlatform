@@ -155,7 +155,7 @@ class BAPProgram:
         self.filename, self.brightness = self.ask_id()
         print(f"Started {self.filename}, brt {self.brightness}")
         self.logfile = open("logs/" + self.filename, "w")
-        self.logfile.writelines(["filename,trial,task,answer,inspect_time\n"])
+        self.logfile.writelines(["filename,trial,fps,task,answer,inspect_time\n"])
         self.main_loop()
         print(f"Ended {self.filename}")
         self.logfile.close()
