@@ -1,5 +1,5 @@
 from bap_loop import BAPProgram
 
-prog = BAPProgram()
+hw = BAPProgram()
 while True:
-    prog.run()
+    hw.run()

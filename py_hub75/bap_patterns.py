@@ -117,6 +117,13 @@ __sign_mtp = np.array([
     [1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
     [1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
 ], dtype=np.bool).transpose()
+__sign_brt = np.array([
+    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0],
+    [1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0],
+    [1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0],
+    [1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0],
+], dtype=np.bool).transpose()
 __sign_c = np.array([
     [1, 1, 1],
     [1, 0, 0],
@@ -131,13 +138,15 @@ __sign_arrow = np.array([
     [0, 0, 0, 1, 0],
     [0, 0, 1, 0, 0]
 ], dtype=np.bool).transpose()
-def ivnd_ask_mtp(sel, values):
+
+def bap_ask_mtp(sel, values):
     base = np.zeros((64, 64), dtype=np.bool)
     select = np.zeros((64, 64), dtype=np.bool)
     static = np.zeros((64, 64), dtype=np.bool)
 
     static[1:12, 1:6] = __sign_mtp
     static[25:28, 1:6] = __sign_c
+    static[1:12, 7:12] = __sign_brt
 
     nums = [__micro_number(v) for v in values]
     if sel != 1:
@@ -160,14 +169,22 @@ def ivnd_ask_mtp(sel, values):
         base[33:36, 1:6] = nums[4]
     else:
         select[33:36, 1:6] = nums[4]
-
+    if sel != 6:
+        base[13:16, 7:12] = nums[5]
+        base[17:20, 7:12] = nums[6]
+        base[21:24, 7:12] = nums[7]
+    else:
+        select[13:16, 7:12] = nums[5]
+        select[17:20, 7:12] = nums[6]
+        select[21:24, 7:12] = nums[7]
     i = 0
-    if len(nums) > 5:
+
+    if len(nums) > 8:
         # dash
         static[37:40, 5] = True
 
-        for i in range(len(nums) - 5):
-            static[41+(4*i):44+(4*i), 1:6] = nums[i+5]
+        for i in range(len(nums) - 8):
+            static[41+(4*i):44+(4*i), 1:6] = nums[i+8]
         i += 2
     if sel != 0:
         base[37 + (4 * i):42 + (4 * i), 1:6] = __sign_arrow

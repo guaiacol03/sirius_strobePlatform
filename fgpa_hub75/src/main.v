@@ -57,16 +57,13 @@ rotary_filter16 inst_filtBtn (
     .ticked_o(ticked_btn)
 );
 wire ticked_cw;
-rotary_filter16 inst_filtCw (
-    .I(R_cw),
-    .clk(clk_20M),
-    .ticked_o(ticked_cw)
-);
 wire ticked_ccw;
-rotary_filter16 inst_filtCcw (
-    .I(R_ccw),
+rotary_orderScanner inst_filtRot (
     .clk(clk_20M),
-    .ticked_o(ticked_ccw)
+    .r_cw(R_cw),
+    .r_ccw(R_ccw),
+    .o_cw(ticked_cw),
+    .o_ccw(ticked_ccw)
 );
 
 wire[1:0] conv_data;

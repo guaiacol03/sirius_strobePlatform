@@ -1,48 +1,55 @@
 import os
 import random
-from bap_display import BAPDisplay
+from bap_platform import BAPPlatform
 from bap_patterns import *
-from bap_rotary import BAPRotary
 import time
 
 class BAPProgram:
     def __init__(self):
-        self.display = BAPDisplay()
-        self.rotary = BAPRotary()
+        self.device = BAPPlatform()
         self.filename = "default"
         self.logfile = None
+        self.brightness = 32
 
     def ask_id(self):
-        self.display.clear()
-        self.display.set_brightness(0x0F)
-        self.display.render_static()
+        self.device.clear()
+        self.device.set_brightness(self.brightness)
+        self.device.render_static()
 
         sel = 0
-        values = [0, 0, 0, 0, 0, 0]
+        values = [0, 0, 0, 0, 0, 0, self.brightness]
         presses = 0
 
         while True:
-            for a in self.rotary.read():
+            for a in self.device.read_rotary():
                 if a == 1:
                     values[sel] += 1
-                    if values[sel] > 9:
-                        values[sel] = 0
+                    if sel != 6:
+                        if values[sel] > 9:
+                            values[sel] = 0
+                    else:
+                        if values[sel] > 255:
+                            values[sel] = 255
                 if a == 2:
                     values[sel] -= 1
-                    if values[sel] < 0:
-                        values[sel] = 9
+                    if sel != 6:
+                        if values[sel] < 0:
+                            values[sel] = 9
+                    else:
+                        if values[sel] < 0:
+                            values[sel] = 0
                 if a == 3:
                     presses += 1
 
             if presses > 0:
                 presses = 0
                 sel += 1
-                if sel > 5:
+                if sel > 6:
                     sel = 0
 
                 values[0] = 0
 
-            nums = [f"{a:1}" for a in values[1:]]
+            nums = [f"{a:1}" for a in values[1:-1]]
             f_name_init = f"MTP{"".join(nums[:3])}C{"".join(nums[3:5])}.csv"
             f_name_adj = f_name_init
             adj = ""
@@ -57,10 +64,12 @@ class BAPProgram:
                     values = [0, 0, 0, 0, 0]
 
             if 3 <= values[0] <= 7:
-                return f_name_adj
+                return f_name_adj, values[-1]
 
-            b_base, b_select, b_static = ivnd_ask_mtp(sel, nums + [a for a in str(adj)])
-            self.display.write(image_b=b_static, image_g=b_select, image_r=b_base)
+            b_base, b_select, b_static = bap_ask_mtp(sel, nums + [l for l in f"{values[-1]:003}"] + [a for a in str(adj)])
+            self.device.write(image_b=b_static, image_g=b_select, image_r=b_base)
+            self.device.set_brightness(values[-1])
+            self.device.render_static()
             time.sleep(0.5)
 
     def log_write(self, log_line):
@@ -69,9 +78,9 @@ class BAPProgram:
             self.logfile.writelines([log_line + "\n"])
 
     def main_loop(self):
-        self.display.clear()
-        self.display.set_brightness(0x0F)
-        self.display.render_static()
+        self.device.clear()
+        self.device.set_brightness(self.brightness)
+        self.device.render_static()
 
         val = 1
         last_val = 0
@@ -81,22 +90,22 @@ class BAPProgram:
         log_index = 0
         log_line = ""
         while True:
-            for a in self.rotary.read():
+            tx = self.device.read_rotary()
+            for a in tx:
                 if a == 1:
                     val += 1
                 if a == 2:
                     val -= 1
                 if a == 3:
                     presses += 1
-
             if presses >= 1.5:
                 presses = 0
-                self.display.clear()
+                self.device.clear()
                 if phase <= 0:
                     log_line = f"{self.filename},{log_index},{last_val},{task},"
                     phase = 1
                     val = 1
-                    self.display.render_static()
+                    self.device.render_static()
                 else:
                     log_line += f"{val:02}"
                     self.log_write(log_line)
@@ -109,7 +118,7 @@ class BAPProgram:
                     val = last_val
                     last_val = 0
 
-            presses = max(0, presses-0.5)
+            presses = max(0, presses-(0.5/5))
 
             if phase > 0:
                 if val > 99:
@@ -119,7 +128,7 @@ class BAPProgram:
 
                 ent_num = f"{val:02}"
                 buf = bap_number(ent_num[0], ent_num[1])
-                self.display.write(image_b=buf)
+                self.device.write(image_b=buf)
             elif val != last_val:
                 if val > 999:
                     val = 999
@@ -127,7 +136,7 @@ class BAPProgram:
                     val = 1
 
                 last_val = val
-                self.display.render_strobe(val)
+                self.device.render_strobe(val)
                 task = f"{random.randint(1, 99):02}"
                 buf = bap_number(task[0], task[1])
 
@@ -135,12 +144,14 @@ class BAPProgram:
                 alw = np.zeros((64, 64), dtype=np.bool)
                 bap_embed_number(val, alw, neg)
 
-                self.display.write(image_r = alw, image_g = neg, image_b = buf)
-            time.sleep(0.5)
+                self.device.write(image_r = alw, image_g = neg, image_b = buf)
+            time.sleep(0.1)
 
     def run(self):
-        self.filename = self.ask_id()
+        self.filename, self.brightness = self.ask_id()
+        print(f"Started {self.filename}, brt {self.brightness}")
         self.logfile = open("logs/" + self.filename, "w")
         self.logfile.writelines(["filename,trial,task,answer\n"])
         self.main_loop()
+        print(f"Ended {self.filename}")
         self.logfile.close()

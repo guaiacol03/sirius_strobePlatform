@@ -28,3 +28,52 @@ module rotary_filter16 (
     end
 
 endmodule
+
+module rotary_orderScanner (
+    input wire r_cw,
+    input wire r_ccw,
+    input wire clk,
+    output reg o_cw,
+    output reg o_ccw
+);
+    wire i_cw;
+    rotary_filter16 f_cw (
+        .I(r_cw),
+        .clk(clk),
+        .ticked_o(i_cw)
+    );
+
+    wire i_ccw;
+    rotary_filter16 f_ccw (
+        .I(r_ccw),
+        .clk(clk),
+        .ticked_o(i_ccw)
+    );
+
+    reg[21:0] last_timer = 22'b0;
+    reg last_cw = 1'b0;
+    reg last_begin = 1'b1;
+
+    always @(posedge clk) begin
+        if (i_cw || i_ccw) begin
+            last_timer <= 22'hFFFFFF;
+            last_cw <= i_cw;
+            last_begin <= ~last_begin;
+        end else begin
+            if (|last_timer) begin
+                last_timer <= last_timer - 22'b1;
+            end else begin
+                last_begin <= 1'b1;
+            end
+        end
+
+        if (!last_begin) begin
+            o_ccw <= last_cw && i_ccw;
+            o_cw <= (!last_cw) && i_cw;
+        end else begin
+            o_cw <= 1'b0;
+            o_ccw <= 1'b0;
+        end
+    end
+
+endmodule
